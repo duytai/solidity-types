@@ -8,7 +8,7 @@ npm i --save solidity-types
 ### 2. Usage
 
 ```javascript
-import { getTypes } from 'solidity-types'
+import { getType } from 'solidity-types'
 
 // return randomized values
 const t = getTypes('uint256')
