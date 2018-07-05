@@ -12,6 +12,7 @@ it('<type>[]', () => {
     for (let n = 0; n < 10; n++) {
       const v = t.random()
       expect(v.length).gte(0)
+      expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
     }
   })
 })
@@ -26,6 +27,7 @@ it('<type>[M]', () => {
       for (let n = 0; n < 10; n++) {
         const v = t.random()
         expect(v.length).to.equal(i)
+        expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
       }
     }
   })
@@ -34,7 +36,9 @@ it('string', () => {
   const t = getType('string')
   for (let i = 0; i < 100; i++) {
     const v = t.random()
+    const buf = t.randomBuffer()
     expect(typeof v).to.equal('string')
+    expect(Buffer.isBuffer(buf)).to.be.true
   }
 })
 
@@ -43,6 +47,7 @@ it('bytes', () => {
   for (let i = 0; i < 100; i++) {
     const v = t.random()
     expect(v - 0).gt(0)
+    expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
   }
 })
 it('bytes<M>', () => {
@@ -51,6 +56,7 @@ it('bytes<M>', () => {
     for (let n = 0; n < 100; n++) {
       const v = t.random()
       const maxVal = maxHex(8 * i)
+      expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
       expect(v - 0).gte(0)
       expect(maxVal - v).gte(0)
     }
@@ -61,8 +67,12 @@ it('address', () => {
   const t = getType('address')
   for (let i = 0; i < 100; i++) {
     const v = t.random()
+    const buf = t.randomBuffer()
+    expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
     expect(v.length).to.equal(42)
     expect(v.slice(0, 2)).to.equal('0x')
+    expect(Buffer.isBuffer(buf)).to.be.true
+    expect(buf.length).to.equal(20)
   }
 })
 
@@ -76,6 +86,7 @@ it('uint<M>/int<M>', () => {
       for (let n = 0; n < 100; n++) {
         const v = t.random()
         const maxVal = maxHex(intNumBits)
+        expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
         expect(v - 0).gte(0)
         expect(maxVal - v).gte(0)
       }
@@ -87,6 +98,9 @@ it('bool', () => {
   const t = getType('bool') 
   for (let i = 0; i < 100; i++) {
     const v = t.random()
+    const buf = t.randomBuffer()
     expect([0, 1].includes(v)).to.equal(true)
+    expect(Buffer.isBuffer(buf)).to.equal(true)
+    expect(buf.length).to.equal(1)
   }
 })

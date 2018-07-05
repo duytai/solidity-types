@@ -2,7 +2,7 @@
   "name": "solidity-types",
   "version": "0.0.5",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha -w"
   },
   "dependencies": {
     "seedrandom": "^2.4.3"

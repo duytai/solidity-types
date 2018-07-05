@@ -1,4 +1,4 @@
-const { randomHex } = require('./lib')
+const { randomHex, randomBuffer } = require('./lib')
 require('seedrandom')
 
 const getType = (typeStr, seed = 0) => {
@@ -10,6 +10,8 @@ const getType = (typeStr, seed = 0) => {
       const t = getType(type, seed)
       return {
         random: () => [...Array(numElem)].map(_ => t.random()),
+        randomBuffer: () => Buffer
+          .concat([...Array(numElem)].map(_ => t.randomBuffer()))
       }
     }
     case /\w+\[\d+\]/.test(typeStr): {
@@ -18,12 +20,15 @@ const getType = (typeStr, seed = 0) => {
       const t = getType(type, seed)
       return {
         random: () => [...Array(numElem)].map(_ => t.random()),
+        randomBuffer: () => Buffer
+          .concat([...Array(numElem)].map(_ => t.randomBuffer()))
       }
     }
     case /u?int(\d*)/.test(typeStr): {
       const numBits = parseInt(typeStr.split('int')[1]) || 256
       return {
-        random: () => randomHex(numBits)
+        random: () => randomHex(numBits),
+        randomBuffer: () => randomBuffer(numBits),
       }
     }
     case /bytes\d+/.test(typeStr): {
@@ -31,7 +36,11 @@ const getType = (typeStr, seed = 0) => {
         random: () => {
           const numBytes = parseInt(typeStr.split('bytes')[1])
           return randomHex(numBytes * 8)
-        } 
+        },
+        randomBuffer: () => {
+          const numBytes = parseInt(typeStr.split('bytes')[1])
+          return randomBuffer(numBytes * 8)
+        }
       }
     }
     case /bytes/.test(typeStr): {
@@ -39,20 +48,29 @@ const getType = (typeStr, seed = 0) => {
         random: (maxLen = 32) => {
           const numBytes = Math.round(maxLen * Math.random())  + 1
           return randomHex(numBytes * 8)
-        }
+        },
+        randomBuffer: (maxLen = 32) => {
+          const numBytes = Math.round(maxLen * Math.random())  + 1
+          return randomBuffer(numBytes * 8)
+        },
       }
     }
     case /string/.test(typeStr): {
       return {
         random: (maxLen = 1000) => {
           const numBytes = Math.round(maxLen * Math.random()) + 1
-          return Buffer.from(randomHex(numBytes * 8).slice(2), 'hex').toString()
+          return randomBuffer(numBytes * 8).toString()
+        },
+        randomBuffer: (maxLen = 1000) => {
+          const numBytes = Math.round(maxLen * Math.random()) + 1
+          return randomBuffer(numBytes * 8)
         },
       }
     }
     case /address/.test(typeStr): {
       return {
         random: () => randomHex(160),
+        randomBuffer: () => randomBuffer(160),
       }
     }
     case /bool/.test(typeStr): {
@@ -61,7 +79,8 @@ const getType = (typeStr, seed = 0) => {
         random: () => {
           const index = Math.round(Math.random())
           return pool[index]
-        }
+        },
+        randomBuffer: () => randomBuffer(8),
       }
     }
     default: {
