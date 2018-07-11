@@ -1,6 +1,42 @@
 const { randomHex, randomBuffer } = require('./lib')
 require('seedrandom')
 
+const NUM_ELEM_IN_ARRAY = 100
+const STRING_LENGTH = 100
+const getTypeFromPool = (typeStr, pool = [], seed = 0) => {
+  Math.seedrandom(seed)
+  switch (true) {
+    case /\w+\[\]/.test(typeStr): {
+      const numElem = NUM_ELEM_IN_ARRAY 
+      return {
+        numElem,
+        random: () => [...Array(numElem)].map(_ => {
+          const index = Math.round(Math.random() * (pool.length - 1))
+          return pool[index]
+        })
+      }
+    }
+    case /\w+\[\d+\]/.test(typeStr): {
+      const numElem = parseInt(typeStr.split('[')[1].split(']')[0])
+      return {
+        numElem,
+        random: () => [...Array(numElem)].map(_ => {
+          const index = Math.round(Math.random() * (pool.length - 1))
+          return pool[index]
+        })
+      }
+    }
+    default: {
+      return {
+        numElem: 0,
+        random: () => {
+          const index = Math.round(Math.random() * (pool.length - 1))
+          return pool[index]
+        }
+      }
+    }
+  }
+}
 const getType = (typeStr, seed = 0) => {
   Math.seedrandom(seed)
   switch (true) {
@@ -63,8 +99,8 @@ const getType = (typeStr, seed = 0) => {
     case /string/.test(typeStr): {
       return {
         numElem: 0,
-        random: (maxLen = 1000) => {
-          const numBytes = Math.round(maxLen * Math.random()) + 1
+        random: () => {
+          const numBytes = STRING_LENGTH + 1
           return randomBuffer(numBytes * 8).toString()
         },
         randomBuffer: (maxLen = 1000) => {
@@ -99,4 +135,5 @@ const getType = (typeStr, seed = 0) => {
 
 module.exports = {
   getType,
+  getTypeFromPool,
 }

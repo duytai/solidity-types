@@ -1,7 +1,30 @@
-const { getType } = require('../')
+const { getType, getTypeFromPool } = require('../')
 const { expect } = require('chai')
 
 const maxHex = numBits => [...Array(numBits/8)].reduce((r) => `${r}FF`, '0x')
+it('<type> from pool', () => {
+  const types = ['int', 'int[]', 'int[256]']
+  const pool = [100, 200, 300]
+  for (let i = 0; i < types.length; i++) {
+    const type = types[i]
+    const t = getTypeFromPool(type, pool)
+    const v = t.random()
+    switch (type) {
+      case 'int':
+        expect(pool.includes(v)).to.be.ok
+        break
+      case 'int[]':
+        v.forEach(val => expect(pool.includes(val)).to.be.ok)
+        break
+      case 'int[256]':
+        v.forEach(val => expect(pool.includes(val)).to.be.ok)
+        expect(v.length).equal(256)
+        break
+      default:
+        expect(false).to.be.true
+    }
+  }
+})
 it('<type>[]', () => {
   const types = ['string', 'bytes', 'int', 'uint', 'address', 'bool']
     .concat([...Array(32)].map((_, index) => `bytes${index + 1}`))
