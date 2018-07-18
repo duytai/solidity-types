@@ -1,41 +1,35 @@
-const { getType, getTypeFromPool } = require('../')
+const { getType } = require('../')
 const { expect } = require('chai')
 
-const maxHex = numBits => [...Array(numBits/8)].reduce((r) => `${r}FF`, '0x')
-it('<type> from pool', () => {
-  const types = ['int', 'int[]', 'int[256]']
-  const pool = [100, 200, 300]
-  for (let i = 0; i < types.length; i++) {
-    const type = types[i]
-    const t = getTypeFromPool(type, pool)
-    const v = t.random()
-    switch (type) {
-      case 'int':
-        expect(pool.includes(v)).to.be.ok
-        break
-      case 'int[]':
-        v.forEach(val => expect(pool.includes(val)).to.be.ok)
-        break
-      case 'int[256]':
-        v.forEach(val => expect(pool.includes(val)).to.be.ok)
-        expect(v.length).equal(256)
-        break
-      default:
-        expect(false).to.be.true
+it('<type>[][]', () => {
+  const types = ['string', 'bytes', 'int', 'uint', 'address', 'bool']
+    .concat([...Array(32)].map((_, index) => `bytes${index + 1}`))
+    .concat([...Array(32)].map((_, index) => `int${(index + 1) * 8}`))
+    .concat([...Array(32)].map((_, index) => `uint${(index + 1) * 8}`))
+  // dynamic
+  types.forEach(type => {
+    const t = getType(`${type}[10][10]`)
+    const value = t.getValue()
+    const data = t.decode()
+    expect(data.length).to.equal(10)
+    expect(Buffer.isBuffer(value)).to.be.true
+    for (let i = 0; i < 10; i++) {
+      expect(data[i].length).to.equal(10)
     }
-  }
+  })
 })
+
 it('<type>[]', () => {
   const types = ['string', 'bytes', 'int', 'uint', 'address', 'bool']
     .concat([...Array(32)].map((_, index) => `bytes${index + 1}`))
     .concat([...Array(32)].map((_, index) => `int${(index + 1) * 8}`))
     .concat([...Array(32)].map((_, index) => `uint${(index + 1) * 8}`))
   types.forEach(type => {
-    const t = getType(`${type}[]`)
     for (let n = 0; n < 10; n++) {
-      const v = t.random()
-      expect(v.length).gte(0)
-      expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
+      const t = getType(`${type}[]`)
+      const value = t.getValue()
+      const data = t.decode()
+      expect(Buffer.isBuffer(value)).to.be.true
     }
   })
 })
@@ -45,57 +39,57 @@ it('<type>[M]', () => {
     .concat([...Array(32)].map((_, index) => `int${(index + 1) * 8}`))
     .concat([...Array(32)].map((_, index) => `uint${(index + 1) * 8}`))
   types.forEach(type => {
-    for (let i = 0; i < 10; i++) {
-      const t = getType(`${type}[${i}]`)
+    for (let i = 1; i < 10; i++) {
       for (let n = 0; n < 10; n++) {
-        const v = t.random()
-        expect(v.length).to.equal(i)
-        expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
+        const t = getType(`${type}[${i}]`)
+        const value = t.getValue()
+        const data = t.decode()
+        expect(data.length).to.equal(i)
+        expect(Buffer.isBuffer(value)).to.be.true
       }
     }
   })
 })
 it('string', () => {
-  const t = getType('string')
   for (let i = 0; i < 100; i++) {
-    const v = t.random()
-    const buf = t.randomBuffer()
-    expect(typeof v).to.equal('string')
-    expect(Buffer.isBuffer(buf)).to.be.true
+    const t = getType('string')
+    const value = t.getValue()
+    const str = t.decode() 
+    expect(typeof str).to.equal('string')
+    expect(Buffer.isBuffer(value)).to.be.true
   }
 })
 
 it('bytes', () => {
-  const t = getType(`bytes`)
   for (let i = 0; i < 100; i++) {
-    const v = t.random()
-    expect(v - 0).gt(0)
-    expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
+    const t = getType(`bytes`)
+    const value = t.getValue()
+    expect(value.length).gt(0)
+    expect(t.decode().slice(0, 2)).to.equal('0x')
+    expect(Buffer.isBuffer(value)).to.be.true
   }
 })
 it('bytes<M>', () => {
   for (let i = 1; i <= 32; i++) {
-    const t = getType(`bytes${i}`)
     for (let n = 0; n < 100; n++) {
-      const v = t.random()
-      const maxVal = maxHex(8 * i)
-      expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
-      expect(v - 0).gte(0)
-      expect(maxVal - v).gte(0)
+      const t = getType(`bytes${i}`)
+      const value = t.getValue()
+      const data = t.decode()
+      expect(data.slice(0, 2)).to.equal('0x')
+      expect(value.length).to.equal(i)
+      expect(Buffer.isBuffer(value)).to.be.true
     }
   }
 })
 
 it('address', () => {
-  const t = getType('address')
   for (let i = 0; i < 100; i++) {
-    const v = t.random()
-    const buf = t.randomBuffer()
-    expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
-    expect(v.length).to.equal(42)
-    expect(v.slice(0, 2)).to.equal('0x')
-    expect(Buffer.isBuffer(buf)).to.be.true
-    expect(buf.length).to.equal(20)
+    const t = getType('address')
+    const value = t.getValue()
+    expect(Buffer.isBuffer(value)).to.be.true
+    expect(value.length).to.equal(20)
+    expect(t.decode().length).to.equal(42)
+    expect(t.decode().slice(0, 2)).to.equal('0x')
   }
 })
 
@@ -105,25 +99,24 @@ it('uint<M>/int<M>', () => {
     for (let i = 0; i <= 256; i += 8) {
       const intExt = i == 0 ? '' : i
       const intNumBits = i == 0 ? 256 : i
-      const t = getType(`${type}${intExt}`)
       for (let n = 0; n < 100; n++) {
-        const v = t.random()
-        const maxVal = maxHex(intNumBits)
-        expect(Buffer.isBuffer(t.randomBuffer())).to.be.true
-        expect(v - 0).gte(0)
-        expect(maxVal - v).gte(0)
+        const t = getType(`${type}${intExt}`)
+        const value = t.getValue()
+        const data = t.decode()
+        expect(Buffer.isBuffer(value)).to.be.true
+        expect(value.length).to.equal(intNumBits/8)
+        expect(data.slice(0, 2)).to.equal('0x')
       }
     }
   })
 })
 
 it('bool', () => {
-  const t = getType('bool') 
   for (let i = 0; i < 100; i++) {
-    const v = t.random()
-    const buf = t.randomBuffer()
-    expect([0, 1].includes(v)).to.equal(true)
-    expect(Buffer.isBuffer(buf)).to.equal(true)
-    expect(buf.length).to.equal(1)
+    const t = getType('bool') 
+    const value = t.getValue()
+    expect([0, 1].includes(t.decode())).to.be.true
+    expect(Buffer.isBuffer(value)).to.equal(true)
+    expect(value.length).to.equal(1)
   }
 })
