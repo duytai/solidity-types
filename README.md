@@ -11,12 +11,8 @@ npm i --save solidity-types
 import { getType } from 'solidity-types'
 
 // return randomized values
-const t = getTypes('uint256')
-const value = t.random()
-
-// return value with seed 
-const seed = 10
-const t = getTypes('uint256', seed)
-const value = t.random()
+const t = getType('uint256')
+const value = t.decode() // get value to encode abi
+const buf = t.getValue() // return buffer which contains your type
 
 ```
