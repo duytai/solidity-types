@@ -102,4 +102,5 @@ const getType = (typeStr, options = {}) => {
 
 module.exports = {
   getType,
+  randomBuffer,
 }
