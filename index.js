@@ -9,7 +9,9 @@ const NUM_SUB_ELEM = 5
 const STRING_LENGTH = 5 
 const BYTES_LENGTH = 5
 
-const getType = (typeStr) => {
+const getType = (typeStr, options = {}) => {
+  let { generator } = options
+  if (!generator) generator = (type) => randomBuffer
   switch (true) {
     case /\w+\[\d*\]\[\d*\]/.test(typeStr): {
       let numElem = NUM_ELEM
@@ -53,33 +55,42 @@ const getType = (typeStr) => {
     }
     case /u?int\d*/.test(typeStr): {
       const numBits = parseInt(typeStr.split('int')[1]) || 256
-      const value = randomBuffer(numBits)
+      const type = typeStr.split(/\d+/)[0]
+      const gen = generator(type)
+      const value = gen(numBits)
       return new SolType({
         value,
       })
     }
     case /bytes\d*/.test(typeStr): {
       let numBytes = parseInt(typeStr.split('bytes')[1]) || BYTES_LENGTH 
-      const value = randomBuffer(numBytes * 8)
+      const type = typeStr.split(/\d+/)[0]
+      const gen = generator(type)
+      const value = gen(numBytes * 8)
       return new SolType({
         value,
       })
     }
     case /string/.test(typeStr): {
-      const value = randomBuffer(STRING_LENGTH * 8)
+      const gen = generator(typeStr)
+      const value = gen(STRING_LENGTH * 8)
       return new SolType({
         value,
         isString: true,
       })
     }
     case /address/.test(typeStr): {
+      const gen = generator(typeStr)
+      const value = gen(160)
       return new SolType({
-        value: randomBuffer(160),
+        value,
       })
     }
     case /bool/.test(typeStr): {
+      const gen = generator(typeStr)
+      const value = gen(8)
       return new SolType({
-        value: randomBuffer(8),
+        value,
         isBool: true,
       })
     }
