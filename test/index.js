@@ -97,11 +97,11 @@ it('address', () => {
 })
 
 it('custom', () => {
-  const t = getType('address-with-value', 20)
+  const t = getType('address-with-value', 24)
   const value = t.getValue()
   expect(Buffer.isBuffer(value)).to.be.true
-  expect(value.length).to.equal(20)
-  expect(t.decode().length).to.equal(42)
+  expect(value.length).to.equal(24)
+  expect(t.decode().length).to.equal(50)
 })
 
 it('uint<M>/int<M>', () => {

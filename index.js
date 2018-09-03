@@ -23,7 +23,7 @@ const getType = (typeStr, len = 0) => {
       const isBool = type === 'bool'
       const isString = type === 'string'
       let value = Buffer.concat(
-        [...Array(numElem)].map(_ => getType(`${type}[${numSubElem}]`).getValue())
+        [...Array(numElem)].map(_ => getType(`${type}[${numSubElem}]`, len).getValue())
       ) 
       return new SolType({
         numElem,
@@ -42,7 +42,7 @@ const getType = (typeStr, len = 0) => {
       const isBool = type === 'bool'
       const isString = type === 'string'
       const value = Buffer.concat(
-        [...Array(numElem)].map(_ => getType(type).getValue())
+        [...Array(numElem)].map(_ => getType(type, len).getValue())
       )
       return new SolType({
         numElem,
