@@ -9,9 +9,7 @@ const NUM_SUB_ELEM = 5
 const STRING_LENGTH = 5 
 const BYTES_LENGTH = 5
 
-const getType = (typeStr, options = {}) => {
-  let { generator } = options
-  if (!generator) generator = (type) => randomBuffer
+const getType = (typeStr, len = 0) => {
   switch (true) {
     case /\w+\[\d*\]\[\d*\]/.test(typeStr): {
       let numElem = NUM_ELEM
@@ -53,49 +51,47 @@ const getType = (typeStr, options = {}) => {
         value,
       })
     }
-    case /u?int\d*/.test(typeStr): {
+    case /^u?int\d*$/.test(typeStr): {
       const numBits = parseInt(typeStr.split('int')[1]) || 256
       const type = typeStr.split(/\d+/)[0]
-      const gen = generator(type)
-      const value = gen(numBits)
+      const value = randomBuffer(numBits)
       return new SolType({
         value,
       })
     }
-    case /bytes\d*/.test(typeStr): {
+    case /^bytes\d*$/.test(typeStr): {
       let numBytes = parseInt(typeStr.split('bytes')[1]) || BYTES_LENGTH 
       const type = typeStr.split(/\d+/)[0]
-      const gen = generator(type)
-      const value = gen(numBytes * 8)
+      const value = randomBuffer(numBytes * 8)
       return new SolType({
         value,
       })
     }
-    case /string/.test(typeStr): {
-      const gen = generator(typeStr)
-      const value = gen(STRING_LENGTH * 8)
+    case /^string$/.test(typeStr): {
+      const value = randomBuffer(STRING_LENGTH * 8)
       return new SolType({
         value,
         isString: true,
       })
     }
-    case /address/.test(typeStr): {
-      const gen = generator(typeStr)
-      const value = gen(160)
+    case /^address$/.test(typeStr): {
+      const value = randomBuffer(160)
       return new SolType({
         value,
       })
     }
-    case /bool/.test(typeStr): {
-      const gen = generator(typeStr)
-      const value = gen(8)
+    case /^bool$/.test(typeStr): {
+      const value = randomBuffer(8)
       return new SolType({
         value,
         isBool: true,
       })
     }
     default: {
-      throw new Error(`unknown type ${typeStr}`)
+      const value = randomBuffer(len * 8)
+      return new SolType({
+        value,
+      })
     }
   }
 }

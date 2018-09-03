@@ -33,6 +33,7 @@ it('<type>[]', () => {
     }
   })
 })
+
 it('<type>[M]', () => {
   const types = ['string', 'bytes', 'int', 'uint', 'address', 'bool']
     .concat([...Array(32)].map((_, index) => `bytes${index + 1}`))
@@ -50,6 +51,7 @@ it('<type>[M]', () => {
     }
   })
 })
+
 it('string', () => {
   for (let i = 0; i < 100; i++) {
     const t = getType('string')
@@ -69,6 +71,7 @@ it('bytes', () => {
     expect(Buffer.isBuffer(value)).to.be.true
   }
 })
+
 it('bytes<M>', () => {
   for (let i = 1; i <= 32; i++) {
     for (let n = 0; n < 100; n++) {
@@ -91,6 +94,14 @@ it('address', () => {
     expect(t.decode().length).to.equal(42)
     expect(t.decode().slice(0, 2)).to.equal('0x')
   }
+})
+
+it('custom', () => {
+  const t = getType('address-with-value', 20)
+  const value = t.getValue()
+  expect(Buffer.isBuffer(value)).to.be.true
+  expect(value.length).to.equal(20)
+  expect(t.decode().length).to.equal(42)
 })
 
 it('uint<M>/int<M>', () => {
